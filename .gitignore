@@ -1,0 +1,14 @@
+# Data (each teammate unzips the Kaggle zip into data/)
+data/
+*.zip
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
