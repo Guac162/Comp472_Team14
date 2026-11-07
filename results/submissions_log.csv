@@ -1,0 +1,2 @@
+date,file,image_preds,sentiment_preds,note,public_score
+2026-11-06T19:24,20261106_192418.csv,preds/test/baseline_image.npy,preds/test/baseline_sentiment.npy,majority-class baseline (pipeline check),

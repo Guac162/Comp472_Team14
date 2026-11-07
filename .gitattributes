@@ -1,0 +1,3 @@
+# Append-only logs: when branches both add rows, keep all rows instead of conflicting
+results/results.csv merge=union
+results/submissions_log.csv merge=union
