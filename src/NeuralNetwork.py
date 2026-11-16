@@ -148,13 +148,13 @@ def train(model, train_loader, val_loader, lr=0.001, max_epochs=100, patience=5)
 ###############################################################
 
 #create model
-sentmodel = NeuralNetwork(input_size=X_senttrain.shape[1], hidden_sizes=[256, 128, 64, 32], output_size=3)
+sentmodel = NeuralNetwork(input_size=X_senttrain.shape[1], hidden_sizes=[512,128], output_size=3)
 print(sentmodel)
 sentmodel, _, sent_acc = train(sentmodel, senttrain_loader, sentval_loader, lr=0.001, patience=5)
 
 print("Best sentiment validation accuracy:", sent_acc)
 
-imgmodel = NeuralNetwork(input_size=X_imgtrain.shape[1], hidden_sizes=[256, 128, 64, 32], output_size=50)
+imgmodel = NeuralNetwork(input_size=X_imgtrain.shape[1], hidden_sizes=[512,128], output_size=50)
 print(imgmodel)
 imgmodel, _, img_acc = train(imgmodel, imgtrain_loader, imgval_loader)
 
