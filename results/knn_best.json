@@ -1,0 +1,16 @@
+{
+  "image": {
+    "scaling": "sqrt",
+    "metric": "euclidean",
+    "weights": "uniform",
+    "k": 1,
+    "val_acc": 0.572
+  },
+  "sentiment": {
+    "scaling": "standard",
+    "metric": "manhattan",
+    "weights": "uniform",
+    "k": 50,
+    "val_acc": 0.5854166666666667
+  }
+}

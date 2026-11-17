@@ -77,9 +77,10 @@ class KNN:
             dist[s:s + len(D)] = np.take_along_axis(part_d, order, axis=1)
         return dist, idx
 
-    def _vote(self, dist, idx):
+    def _vote(self, dist, idx, weights=None):
+        weights = weights or self.weights
         labels = self.y_[idx]                                   # (n, k), closest first
-        w = np.ones_like(dist) if self.weights == "uniform" else 1.0 / (dist + 1e-8)
+        w = np.ones_like(dist) if weights == "uniform" else 1.0 / (dist + 1e-8)
         rows = np.arange(len(labels))[:, None]
         votes = np.zeros((len(labels), self.n_classes_), dtype=np.float64)
         np.add.at(votes, (rows, labels), w)
@@ -94,3 +95,8 @@ class KNN:
         """Predictions for several k values from one neighbour search (for sweeps)."""
         dist, idx = self.kneighbors(X, max(ks))
         return {k: self._vote(dist[:, :k], idx[:, :k]) for k in ks}
+
+    def predict_grid(self, X, ks, weights=WEIGHTS):
+        """Predictions for every (weights, k) pair from one neighbour search (for sweeps)."""
+        dist, idx = self.kneighbors(X, max(ks))
+        return {(w, k): self._vote(dist[:, :k], idx[:, :k], weights=w) for w in weights for k in ks}

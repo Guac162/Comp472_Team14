@@ -3,3 +3,4 @@ date,file,image_preds,sentiment_preds,note,public_score
 2026-11-06T19:35,20261106_193514.csv,preds/test/knn_image.npy,preds/test/knn_sentiment.npy,"knn k=5 euclidean uniform; image raw, sentiment standard; fit on 80% split (val img 0.4915, sent 0.5442)",0.511
 2026-11-16T16:32,20261116_163258.csv,preds/test/forest_image.npy,preds/test/forest_sentiment.npy,"forest 100 trees sqrt, full depth, both tasks; fit on 80% split (val img 0.2782, sent 0.5813)",0.434
 2026-11-16T16:33,20261116_163302.csv,preds/test/knn_image.npy,preds/test/forest_sentiment.npy,"knn k=5 raw for image + forest 100 trees for sentiment; picked per task on val (val img 0.4915, sent 0.5813)",0.532
+2026-11-17T16:51,20261117_165146.csv,preds/test/knn_image.npy,preds/test/knn_sentiment.npy,"knn sweep winners: image sqrt+euclidean k=1 (val 0.572), sentiment standard+manhattan k=50 (val 0.585); fit on 80% split",0.566

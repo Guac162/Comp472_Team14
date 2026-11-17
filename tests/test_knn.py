@@ -70,6 +70,27 @@ def test_predict_for_ks_matches_predict():
         assert (pred == KNN(k=k, metric="cosine").fit(X, y).predict(Q)).all(), k
 
 
+def test_predict_grid_matches_predict():
+    rng = np.random.default_rng(3)
+    X, y, Q = rng.normal(size=(300, 4)), rng.integers(0, 4, 300), rng.normal(size=(40, 4))
+    grid = KNN(metric="manhattan").fit(X, y).predict_grid(Q, [1, 4, 9])
+    for (w, k), pred in grid.items():
+        assert (pred == KNN(k=k, metric="manhattan", weights=w).fit(X, y).predict(Q)).all(), (w, k)
+
+
+def test_sqrt_preprocessing():
+    from src.preprocess import preprocess
+    X = np.array([[4.0, 0.0, 0.0], [1.0, 1.0, 2.0]])
+    (out,) = preprocess(X, method="sqrt")
+    assert np.allclose(np.linalg.norm(out, axis=1), 1.0)
+    assert np.allclose(out[0], [1, 0, 0])
+    try:
+        preprocess(-X, method="sqrt")
+        raise AssertionError("negative input should be refused")
+    except ValueError:
+        pass
+
+
 if __name__ == "__main__":
     tests = [f for name, f in sorted(globals().items()) if name.startswith("test_")]
     for t in tests:

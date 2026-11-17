@@ -6,7 +6,7 @@ are all of load_all().
 """
 import numpy as np
 
-METHODS = ("raw", "standard", "l2")
+METHODS = ("raw", "standard", "l2", "sqrt")
 
 
 class Standardizer:
@@ -32,6 +32,18 @@ def l2_normalize(X, eps=1e-12):
     return (X / np.maximum(norms, eps)).astype(np.float32)
 
 
+def sqrt_normalize(X):
+    """Hellinger mapping for histogram-like features: sqrt of each value, then L2 per row.
+
+    Big counts shrink more than small ones, so no single visual word dominates the
+    distance. Needs no fitting (each row uses only itself). Only valid for
+    non-negative features (the image set), not for the sentiment embeddings.
+    """
+    if (X < 0).any():
+        raise ValueError("sqrt needs non-negative features (use it for images only)")
+    return l2_normalize(np.sqrt(X))
+
+
 def preprocess(X_train, *others, method="standard"):
     """Apply one method to X_train and any other sets (val, test).
 
@@ -41,6 +53,8 @@ def preprocess(X_train, *others, method="standard"):
         return (X_train, *others)
     if method == "l2":
         return tuple(l2_normalize(X) for X in (X_train, *others))
+    if method == "sqrt":
+        return tuple(sqrt_normalize(X) for X in (X_train, *others))
     if method == "standard":
         scaler = Standardizer().fit(X_train)            # fitted on train only
         return tuple(scaler.transform(X) for X in (X_train, *others))
