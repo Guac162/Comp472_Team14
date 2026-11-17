@@ -7,3 +7,9 @@ date,who,model,dataset,params,train_acc,val_acc,train_time_s,predict_time_s
 2026-11-06,Mohammed,knn,sentiment,"{""k"": 5, ""metric"": ""euclidean"", ""scaling"": ""standard"", ""weights"": ""uniform""}",0.7777,0.5442,0.00,0.18
 2026-11-16,Elena,tree,image,"{""criterion"": ""gini"", ""max_depth"": 5, ""min_samples_leaf"": 1, ""min_samples_split"": 2, ""n_bins"": 32}",0.0648,0.0595,1.32,0.00
 2026-11-16,Elena,tree,sentiment,"{""criterion"": ""gini"", ""max_depth"": 5, ""min_samples_leaf"": 1, ""min_samples_split"": 2, ""n_bins"": 32}",0.5273,0.4846,1.17,0.00
+2026-11-16,Elena,forest,image,"{""criterion"": ""gini"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 1, ""n_bins"": 32, ""n_trees"": 10}",,0.1283,29.92,0.50
+2026-11-16,Elena,forest,image,"{""criterion"": ""gini"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 1, ""n_bins"": 32, ""n_trees"": 50}",,0.2318,149.60,0.50
+2026-11-16,Elena,forest,image,"{""criterion"": ""gini"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 1, ""n_bins"": 32, ""n_trees"": 100}",1.0000,0.2782,299.19,0.50
+2026-11-16,Elena,forest,sentiment,"{""criterion"": ""gini"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 1, ""n_bins"": 32, ""n_trees"": 10}",,0.4908,8.72,0.11
+2026-11-16,Elena,forest,sentiment,"{""criterion"": ""gini"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 1, ""n_bins"": 32, ""n_trees"": 50}",,0.5621,43.62,0.11
+2026-11-16,Elena,forest,sentiment,"{""criterion"": ""gini"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 1, ""n_bins"": 32, ""n_trees"": 100}",1.0000,0.5813,87.24,0.11
