@@ -73,9 +73,14 @@ def log_result(model, dataset, who, params, train_acc, val_acc,
             writer.writeheader()
         writer.writerow(row)
 
+    save_preds(model, dataset, val_pred=val_pred, test_pred=test_pred)
+    return row
+
+
+def save_preds(model, dataset, val_pred=None, test_pred=None):
+    """Save predictions to preds/val/ and preds/test/ as <model>_<dataset>.npy."""
     for split, pred in (("val", val_pred), ("test", test_pred)):
         if pred is not None:
             out = PREDS_DIR / split / f"{model}_{dataset}.npy"
             out.parent.mkdir(parents=True, exist_ok=True)
             np.save(out, np.asarray(pred, dtype=np.int64))
-    return row
