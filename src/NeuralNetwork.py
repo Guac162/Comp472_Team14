@@ -1,78 +1,23 @@
-import numpy as np
-import pandas as pd
 import copy
-import torch.nn as nn
+
 import torch
+import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 
+from src.data import load
+from src.preprocess import preprocess          # <-- adjust to the real filename
+from src.utils import set_seed, accuracy, timer, log_result
 
-sentimentsplit = np.load("sentiment_split.npz")
-senttrain_idx, sentval_idx = sentimentsplit["train_idx"], sentimentsplit["val_idx"]
-
-imagesplit = np.load("image_split.npz")
-imgtrain_idx, imgval_idx = imagesplit["train_idx"], imagesplit["val_idx"]
-
-
-#check split
-print(senttrain_idx.dtype, senttrain_idx[:5])
-print(len(senttrain_idx), len(sentval_idx))    
-
-print(imgtrain_idx.dtype, imgtrain_idx[:5])
-print(len(imgtrain_idx), len(imgval_idx))  
-
-#load data
-sentdata = pd.read_csv("sentiment_train.csv")
-imgdata = pd.read_csv("image_train.csv")      
-
-#split data according to npz file
-senttrain_data = sentdata.iloc[senttrain_idx]
-sentval_data   = sentdata.iloc[sentval_idx]
-
-imgtrain_data = imgdata.iloc[imgtrain_idx]
-imgval_data   = imgdata.iloc[imgval_idx]
-
-#
-assert set(senttrain_data["id"]).isdisjoint(sentval_data["id"])
-assert len(senttrain_data) + len(sentval_data) == len(sentdata)
-
-assert set(imgtrain_data["id"]).isdisjoint(imgval_data["id"])
-assert len(imgtrain_data) + len(imgval_data) == len(imgdata)
-
-#
-X_senttrain = senttrain_data.drop(columns=["id", "label"]).values.astype("float32")
-y_senttrain = senttrain_data["label"].values.astype("int64")
-X_sentval   = sentval_data.drop(columns=["id", "label"]).values.astype("float32")
-y_sentval   = sentval_data["label"].values.astype("int64")
-
-X_imgtrain = imgtrain_data.drop(columns=["id", "label"]).values.astype("float32")
-y_imgtrain = imgtrain_data["label"].values.astype("int64")
-X_imgval   = imgval_data.drop(columns=["id", "label"]).values.astype("float32")
-y_imgval   = imgval_data["label"].values.astype("int64")
-#########################
-
-#loaders
-senttrain_ds = TensorDataset(torch.from_numpy(X_senttrain), torch.from_numpy(y_senttrain))
-sentval_ds   = TensorDataset(torch.from_numpy(X_sentval),   torch.from_numpy(y_sentval))
-
-senttrain_loader = DataLoader(senttrain_ds, batch_size=128, shuffle=True)
-sentval_loader   = DataLoader(sentval_ds, batch_size=128)
+WHO = "Yousra"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-imgtrain_ds = TensorDataset(torch.from_numpy(X_imgtrain), torch.from_numpy(y_imgtrain))
-imgval_ds   = TensorDataset(torch.from_numpy(X_imgval),   torch.from_numpy(y_imgval))
-
-imgtrain_loader = DataLoader(imgtrain_ds, batch_size=128, shuffle=True)
-imgval_loader   = DataLoader(imgval_ds, batch_size=128)
-################################
-
-#NN class
+# ---------- model ----------
 class NeuralNetwork(nn.Module):
     def __init__(self, input_size, hidden_sizes, output_size,
                  activation=nn.ReLU, dropout=0.0):
         super().__init__()
-
-        layers = []
-        in_features = input_size
+        layers, in_features = [], input_size
         for h in hidden_sizes:
             layers.append(nn.Linear(in_features, h))
             layers.append(activation())
@@ -80,16 +25,13 @@ class NeuralNetwork(nn.Module):
                 layers.append(nn.Dropout(dropout))
             in_features = h
         layers.append(nn.Linear(in_features, output_size))
-
         self.linear_relu_stack = nn.Sequential(*layers)
 
     def forward(self, x):
-        logits = self.linear_relu_stack(x)
-        return logits
-################################
+        return self.linear_relu_stack(x)
 
 
-#train and evaluate functions
+# ---------- train / eval / predict ----------
 def evaluate(model, loader, loss_fn, device):
     model.eval()
     total_loss, correct, total = 0.0, 0, 0
@@ -103,21 +45,20 @@ def evaluate(model, loader, loss_fn, device):
     return total_loss / total, correct / total
 
 
-def train(model, train_loader, val_loader, lr=0.001, max_epochs=100, patience=5):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
+def train(model, train_loader, val_loader, lr=1e-3, weight_decay=0.0,
+          max_epochs=100, patience=5):
+    model.to(DEVICE)
     loss_fn = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    best_acc, best_state, wait = 0.0, None, 0
+    best_acc, best_state, wait = -1.0, None, 0
     history = {"train_loss": [], "val_loss": [], "val_acc": []}
 
     for epoch in range(max_epochs):
         model.train()
         running_loss, n = 0.0, 0
         for X, y in train_loader:
-            X, y = X.to(device), y.to(device)
+            X, y = X.to(DEVICE), y.to(DEVICE)
             optimizer.zero_grad()
             loss = loss_fn(model(X), y)
             loss.backward()
@@ -126,71 +67,96 @@ def train(model, train_loader, val_loader, lr=0.001, max_epochs=100, patience=5)
             n += len(y)
 
         train_loss = running_loss / n
-        val_loss, val_acc = evaluate(model, val_loader, loss_fn, device)
+        val_loss, val_acc = evaluate(model, val_loader, loss_fn, DEVICE)
         history["train_loss"].append(train_loss)
         history["val_loss"].append(val_loss)
         history["val_acc"].append(val_acc)
-
         print(f"Epoch {epoch+1:3d} | train loss {train_loss:.4f} | "
               f"val loss {val_loss:.4f} | val acc {val_acc:.4f}")
 
         if val_acc > best_acc:
             best_acc, wait = val_acc, 0
             best_state = copy.deepcopy(model.state_dict())
+            history["best_epoch"] = epoch + 1
         else:
             wait += 1
             if wait >= patience:
                 print(f"Early stopping at epoch {epoch+1}")
                 break
 
-    model.load_state_dict(best_state)   # go back to the best weights
+    model.load_state_dict(best_state)
     return model, history, best_acc
-###############################################################
-
-#create model
-sentmodel = NeuralNetwork(input_size=X_senttrain.shape[1], hidden_sizes=[64,32], output_size=3)
-print(sentmodel)
-sentmodel, _, sent_acc = train(sentmodel, senttrain_loader, sentval_loader, lr=0.001, patience=5)
-
-print("Best sentiment validation accuracy:", sent_acc)
-
-imgmodel = NeuralNetwork(input_size=X_imgtrain.shape[1], hidden_sizes=[64,32], output_size=50)
-print(imgmodel)
-imgmodel, _, img_acc = train(imgmodel, imgtrain_loader, imgval_loader)
-
-print("Best image validation accuracy:", img_acc)
 
 
-#prediction function
-def predict_df(model, df, scaler=None):
-    X = df.drop(columns=["id"]).values.astype("float32")
-    if scaler is not None:
-        X = scaler.transform(X).astype("float32")
+def predict(model, X):
     model.eval()
-    device = next(model.parameters()).device
     with torch.no_grad():
-        p = model(torch.from_numpy(X).to(device)).argmax(dim=1).cpu().numpy()
-    return pd.DataFrame({"id": df["id"].values, "label": p})
+        t = torch.from_numpy(X.astype("float32")).to(DEVICE)
+        return model(t).argmax(dim=1).cpu().numpy()
 
-sent_test = pd.read_csv("sentiment_test.csv")
-img_test  = pd.read_csv("image_test.csv")
 
-sent_out = predict_df(sentmodel, sent_test)
-img_out  = predict_df(imgmodel, img_test)
-##############################################
+def make_loaders(X_tr, y_tr, X_va, y_va, batch_size=128):
+    tr = TensorDataset(torch.from_numpy(X_tr), torch.from_numpy(y_tr))
+    va = TensorDataset(torch.from_numpy(X_va), torch.from_numpy(y_va))
+    return DataLoader(tr, batch_size=batch_size, shuffle=True), DataLoader(va, batch_size=batch_size)
 
-#check
-sample = pd.read_csv("sample_submission.csv")
-print(sample["id"].head(3).tolist())
-print(sent_test["id"].head(3).tolist(), img_test["id"].head(3).tolist())
 
-#prediction submission
-preds_all = pd.concat([sent_out, img_out], ignore_index=True)
+# ---------- one dataset: run configs, log each, keep best ----------
+def run_dataset(name, configs):
+    X_tr0, y_tr, X_va0, y_va, X_te0, ids = load(name)
+    n_classes = int(y_tr.max()) + 1
 
-assert set(preds_all["id"]) == set(sample["id"]), "IDs don't match the template"
+    best_acc, best_cfg = -1.0, None
+    for cfg in configs:
+        print(f"\n=== {name}: {cfg} ===")
+        set_seed()   # same seed for every config, so runs are comparable
 
-sub = sample[["id"]].merge(preds_all, on="id", how="left")   # keeps the template's row order
-assert sub["label"].notna().all() and len(sub) == 10_000
+        # scaler (if any) is fitted on train only, then applied to val and test
+        X_tr, X_va, X_te = preprocess(X_tr0, X_va0, X_te0, method=cfg["method"])
+        tr_loader, va_loader = make_loaders(X_tr, y_tr, X_va, y_va)
 
-sub.to_csv("predictions4.csv", index=False)
-print(sub.head())
+        model = NeuralNetwork(X_tr.shape[1], cfg["hidden_sizes"], n_classes,
+                              dropout=cfg["dropout"])
+
+        with timer() as t_train:
+            model, history, _ = train(model, tr_loader, va_loader,
+                                      lr=cfg["lr"], weight_decay=cfg["weight_decay"])
+
+        with timer() as t_pred:
+            val_pred = predict(model, X_va)
+            test_pred = predict(model, X_te)
+        train_pred = predict(model, X_tr)   # not timed: only for train_acc
+
+        train_acc = accuracy(y_tr, train_pred)
+        val_acc = accuracy(y_va, val_pred)
+
+        params = dict(cfg, n_classes=n_classes,
+                      epochs_run=len(history["val_acc"]),
+                      best_epoch=history["best_epoch"])
+
+        # predictions are saved only when this config is the best so far, so
+        # preds/*/nn_<dataset>.npy always ends up holding the best config.
+        is_best = val_acc > best_acc
+        log_result(model="nn", dataset=name, who=WHO, params=params,
+                   train_acc=train_acc, val_acc=val_acc,
+                   train_time_s=t_train["s"], predict_time_s=t_pred["s"],
+                   val_pred=val_pred if is_best else None,
+                   test_pred=test_pred if is_best else None)
+
+        if is_best:
+            best_acc, best_cfg = val_acc, cfg
+
+    print(f"\nBest {name} val acc {best_acc:.4f} with {best_cfg}")
+    return best_acc
+
+
+if __name__ == "__main__":
+    sent_configs = [
+        dict(method="raw", hidden_sizes=[512, 128], dropout=0.1, lr=1e-3, weight_decay=1e-3),
+    ]
+    img_configs = [
+        dict(method="raw", hidden_sizes=[512, 128], dropout=0.1, lr=1e-3, weight_decay=1e-5),
+    ]
+
+    run_dataset("sentiment", sent_configs)
+    run_dataset("image", img_configs)
