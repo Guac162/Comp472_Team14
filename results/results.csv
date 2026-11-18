@@ -229,3 +229,5 @@ date,who,model,dataset,params,train_acc,val_acc,train_time_s,predict_time_s
 2026-11-17,Mohammed,knn,sentiment,"{""k"": 10, ""metric"": ""manhattan"", ""scaling"": ""l2"", ""weights"": ""distance""}",,0.5596,0.00,6.18
 2026-11-17,Mohammed,knn,sentiment,"{""k"": 20, ""metric"": ""manhattan"", ""scaling"": ""l2"", ""weights"": ""distance""}",,0.5629,0.00,6.18
 2026-11-17,Mohammed,knn,sentiment,"{""k"": 50, ""metric"": ""manhattan"", ""scaling"": ""l2"", ""weights"": ""distance""}",,0.5804,0.00,6.18
+2026-11-18,Yousra,nn,sentiment,"{""best_epoch"": 15, ""dropout"": 0.1, ""epochs_run"": 20, ""hidden_sizes"": [512, 128], ""lr"": 0.001, ""method"": ""raw"", ""n_classes"": 3, ""weight_decay"": 0.001}",0.7923,0.6717,18.76,0.05
+2026-11-18,Yousra,nn,image,"{""best_epoch"": 32, ""dropout"": 0.1, ""epochs_run"": 37, ""hidden_sizes"": [512, 128], ""lr"": 0.001, ""method"": ""raw"", ""n_classes"": 50, ""weight_decay"": 1e-05}",0.9759,0.3490,90.30,0.40
