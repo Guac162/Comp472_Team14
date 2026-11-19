@@ -1,0 +1,13 @@
+{
+  "max_features": "2*sqrt",
+  "min_samples_leaf": 1,
+  "n_trees": 300,
+  "val_acc": 0.6075,
+  "oob": 0.6022916666666667,
+  "fit_s": 293.85698709997814,
+  "train_acc": 1.0,
+  "nodes": 807818,
+  "mb": 57.651048,
+  "scaling": "raw",
+  "pca": null
+}

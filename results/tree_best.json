@@ -1,0 +1,28 @@
+{
+  "image": {
+    "max_depth": null,
+    "min_samples_leaf": 20,
+    "criterion": "gini",
+    "n_bins": 32,
+    "train_acc": 0.2476875,
+    "val_acc": 0.1165,
+    "depth_reached": 54,
+    "leaves": 602,
+    "nodes": 1203,
+    "mb": 0.105308,
+    "fit_s": 39.72274430003017
+  },
+  "sentiment": {
+    "max_depth": 4,
+    "min_samples_leaf": 1,
+    "criterion": "gini",
+    "n_bins": 32,
+    "train_acc": 0.5104166666666666,
+    "val_acc": 0.5025,
+    "depth_reached": 4,
+    "leaves": 16,
+    "nodes": 31,
+    "mb": 0.096348,
+    "fit_s": 0.9974789000116289
+  }
+}
