@@ -1,0 +1,16 @@
+{
+  "image": {
+    "choice": "knn",
+    "models": [
+      "knn"
+    ],
+    "val_acc": 0.572
+  },
+  "sentiment": {
+    "choice": "nn",
+    "models": [
+      "nn"
+    ],
+    "val_acc": 0.6716666666666666
+  }
+}
