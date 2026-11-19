@@ -17,6 +17,7 @@ Run from the repo root:  python -m experiments.error_analysis
 """
 import csv
 import itertools
+import json
 from pathlib import Path
 
 import matplotlib
@@ -81,6 +82,24 @@ def efficiency_rows():
             if key not in best or float(r["val_acc"]) > float(best[key]["val_acc"]):
                 best[key] = r
     return best
+
+
+def model_size(model, dataset, params):
+    """Model size from what each owner recorded; falls back to 'not recorded'."""
+    n_train, d = {"image": (16000, 500), "sentiment": (9600, 768)}[dataset]
+    if model == "knn":   # the model is the stored training matrix
+        return f"{n_train * d * 4 / 1e6:.1f} MB (stored training data)"
+    if model == "nn" and "hidden_sizes" in params:
+        sizes = [d, *params["hidden_sizes"], N_CLASSES[dataset]]
+        n = sum(a * b + b for a, b in zip(sizes, sizes[1:]))   # weights + biases per layer
+        return f"{n * 4 / 1e6:.2f} MB ({n:,} parameters)"
+    for path in (ROOT / "results" / f"{model}_best_{dataset}.json", ROOT / "results" / f"{model}_best.json"):
+        if path.exists():
+            info = json.loads(path.read_text())
+            info = info.get(dataset, info)
+            if "mb" in info:
+                return f"{info['mb']:.1f} MB ({info.get('nodes', '?'):,} nodes)"
+    return "not recorded"
 
 
 def main():
@@ -151,11 +170,7 @@ def main():
            "| model | dataset | val accuracy | train time (s) | predict time (s) | size |",
            "|---|---|---|---|---|---|"]
     for (m, dataset), r in sorted(efficiency_rows().items()):
-        if m == "knn":   # the model is the stored training matrix
-            n_train, d = {"image": (16000, 500), "sentiment": (9600, 768)}[dataset]
-            size = f"{n_train * d * 4 / 1e6:.1f} MB (stored training data)"
-        else:
-            size = "ask owner"
+        size = model_size(m, dataset, json.loads(r["params"]))
         md.append(f"| {m} | {dataset} | {float(r['val_acc']):.2%} | {r['train_time_s']} | "
                   f"{r['predict_time_s']} | {size} |")
     md += ["", "k-NN predict time is one neighbour search over the validation set, shared by all k values."]
