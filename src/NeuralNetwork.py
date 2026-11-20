@@ -106,21 +106,21 @@ def run_dataset(name, configs):
     X_tr0, y_tr, X_va0, y_va, X_te0, ids = load(name)
     n_classes = int(y_tr.max()) + 1
 
-    best_acc, best_cfg = -1.0, None
-    for cfg in configs:
-        print(f"\n=== {name}: {cfg} ===")
-        set_seed()   # same seed for every config, so runs are comparable
+    best_acc, best_config = -1.0, None
+    for config in configs:
+        print(f"\n=== {name}: {config} ===")
+        set_seed()   # same seed for every config->comparable runs
 
         # scaler (if any) is fitted on train only, then applied to val and test
-        X_tr, X_va, X_te = preprocess(X_tr0, X_va0, X_te0, method=cfg["method"])
-        tr_loader, va_loader = make_loaders(X_tr, y_tr, X_va, y_va)
+        X_tr, X_va, X_te = preprocess(X_tr0, X_va0, X_te0, method=config["method"])
+        tr_loader, va_loader = make_loaders(X_tr, y_tr, X_va, y_va, batch_size=config.get("batch_size", 128))
 
-        model = NeuralNetwork(X_tr.shape[1], cfg["hidden_sizes"], n_classes,
-                              dropout=cfg["dropout"])
+        model = NeuralNetwork(X_tr.shape[1], config["hidden_sizes"], n_classes,
+                              dropout=config["dropout"])
 
         with timer() as t_train:
             model, history, _ = train(model, tr_loader, va_loader,
-                                      lr=cfg["lr"], weight_decay=cfg["weight_decay"])
+                                      lr=config["lr"], weight_decay=config["weight_decay"])
 
         with timer() as t_pred:
             val_pred = predict(model, X_va)
@@ -130,7 +130,7 @@ def run_dataset(name, configs):
         train_acc = accuracy(y_tr, train_pred)
         val_acc = accuracy(y_va, val_pred)
 
-        params = dict(cfg, n_classes=n_classes,
+        params = dict(config, n_classes=n_classes,
                       epochs_run=len(history["val_acc"]),
                       best_epoch=history["best_epoch"])
 
@@ -144,18 +144,18 @@ def run_dataset(name, configs):
                    test_pred=test_pred if is_best else None)
 
         if is_best:
-            best_acc, best_cfg = val_acc, cfg
+            best_acc, best_config = val_acc, config
 
-    print(f"\nBest {name} val acc {best_acc:.4f} with {best_cfg}")
+    print(f"\nBest {name} val acc {best_acc:.4f} with {best_config}")
     return best_acc
 
 
 if __name__ == "__main__":
     sent_configs = [
-        dict(method="raw", hidden_sizes=[512, 128], dropout=0.1, lr=1e-3, weight_decay=1e-3),
+        dict(method="raw", hidden_sizes=[512, 128], dropout=0.5, lr=1e-2, weight_decay=1e-3),
     ]
     img_configs = [
-        dict(method="raw", hidden_sizes=[512, 128], dropout=0.1, lr=1e-3, weight_decay=1e-5),
+        dict(method="raw", hidden_sizes=[512, 128], dropout=0.5, lr=1e-2, weight_decay=1e-5),
     ]
 
     run_dataset("sentiment", sent_configs)
