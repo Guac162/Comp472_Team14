@@ -22,3 +22,4 @@ date,file,image_preds,sentiment_preds,note,public_score
 2026-11-20T18:39,20261120_183926.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp so far + depth 1 width 512",
 2026-11-20T18:43,20261120_184340.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp so far + depth 2 width 256,128",
 2026-11-20T18:51,20261120_185146.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp so far + depth 2 width 256,128",
+2026-11-20T18:39,20261120_183926.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp so far + depth 1 width 512",0.483
