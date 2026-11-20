@@ -16,7 +16,7 @@ from src.Kmeans import KMeans
 from src.preprocess import preprocess          # <-- adjust to the real filename
 from src.utils import set_seed, timer, log_result, SEED
 
-WHO = "your_name"   # <-- set this
+WHO = "Yousra"
 METHOD = {"sentiment": "raw", "image": "raw"}   # "standard", "l2" (and "sqrt" for images) also allowed
 N_INIT = 10
 IMG_KS = (10, 25, 50, 100)

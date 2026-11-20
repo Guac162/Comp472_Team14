@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 
 from src.data import load
-from src.preprocess import preprocess          # <-- adjust to the real filename
+from src.preprocess import preprocess
 from src.utils import set_seed, accuracy, timer, log_result
 
 WHO = "Yousra"
