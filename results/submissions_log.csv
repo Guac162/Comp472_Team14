@@ -12,3 +12,4 @@ date,file,image_preds,sentiment_preds,note,public_score
 2026-11-20T15:47,20261120_154744.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best weight decay so far + dropout 0.5 lr 0,001",0.484
 2026-11-20T15:14,20261120_151450.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,best performing weight decay so far + dropout 0.5 lr 0.01,0.458
 2026-11-20T16:12,20261120_161240.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best weight decay so far + dropout 0.5 lr 0,0001",
+2026-11-20T16:22,20261120_162221.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best weight decay so far + dropout 0.0 lr 0,0001",
