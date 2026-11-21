@@ -4,7 +4,7 @@ Run from the repo root:   python -m src.clustering
 Labels are used only to evaluate the clusters, never to fit them.
 """
 import matplotlib
-matplotlib.use("Agg")
+matplotlib.use("Agg") #no window only save figures to files
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -13,11 +13,11 @@ from sklearn.metrics import normalized_mutual_info_score
 
 from src.data import load_all, ROOT
 from src.Kmeans import KMeans
-from src.preprocess import preprocess          # <-- adjust to the real filename
+from src.preprocess import preprocess
 from src.utils import set_seed, timer, log_result, SEED
 
 WHO = "Yousra"
-METHOD = {"sentiment": "raw", "image": "raw"}   # "standard", "l2" (and "sqrt" for images) also allowed
+METHOD = {"sentiment": "raw", "image": "raw"} 
 N_INIT = 10
 IMG_KS = (10, 25, 50, 100)
 
@@ -28,7 +28,7 @@ for d in (FIG_DIR, CLUSTER_DIR):
     d.mkdir(parents=True, exist_ok=True)
 
 
-def purity(y, clusters):
+def purity(y, clusters):     #for each cluster count its most common label, add those up, divide by n
     ct = pd.crosstab(clusters, y).to_numpy()
     return float(ct.max(axis=1).sum() / ct.sum())
 
@@ -38,7 +38,7 @@ def run_one(name, k, X, y, X_te, method):
     with timer() as t_fit:
         km = KMeans(k=k, n_init=N_INIT, seed=SEED).fit(X)
     with timer() as t_pred:
-        km.predict(X_te)
+        km.predict(X_te)  #only here so predict_time_s has a value
     clusters = km.labels_
     m = dict(k=k, inertia=km.inertia_,
              nmi=float(normalized_mutual_info_score(y, clusters)),
@@ -46,8 +46,8 @@ def run_one(name, k, X, y, X_te, method):
     params = dict(k=k, method=method, n_init=N_INIT, n_iter=km.n_iter_,
                   inertia=round(m["inertia"], 2), nmi=round(m["nmi"], 4),
                   purity=round(m["purity"], 4), metric_note="val_acc column = purity on the fitted rows")
-    # No val_pred/test_pred here: cluster ids are not class labels, so they must not land in preds/
-    # (make_submission and ensembling expect class labels). Cluster ids go to results/clusters/ instead.
+    #no val_pred/test_pred here: cluster ids are not class labels, so they must not land in preds/
+    #make_submission and ensembling expect class labels - cluster ids go to results/clusters/ instead
     log_result(model="kmeans", dataset=name, who=WHO, params=params,
                train_acc=None, val_acc=m["purity"],
                train_time_s=t_fit["s"], predict_time_s=t_pred["s"])
@@ -59,9 +59,9 @@ def run_one(name, k, X, y, X_te, method):
 
 def pca_plot(X, y, clusters, title, path, max_points=5000):
     """2-D PCA of the features, coloured by true label (left) and by cluster (right)."""
-    rng = np.random.default_rng(SEED)
+    rng = np.random.default_rng(SEED) #plot random subset so scatter stays readable
     idx = rng.choice(len(X), min(max_points, len(X)), replace=False)
-    pca = PCA(n_components=2, random_state=SEED).fit(X)
+    pca = PCA(n_components=2, random_state=SEED).fit(X) #fit on everything, plot subset
     Z = pca.transform(X[idx])
     fig, axes = plt.subplots(1, 2, figsize=(13, 5.5))
     for ax, colours, label in zip(axes, (y[idx], clusters[idx]), ("true label", "k-Means cluster")):
@@ -78,6 +78,7 @@ def pca_plot(X, y, clusters, title, path, max_points=5000):
 def mixing_report(ct, name):
     """Which classes share clusters (rows of ct = clusters, columns = classes)."""
     rows = []
+    #for every cluster: its biggest class and the runner-up. a big runner-up = two classes got merged
     for c in ct.index:
         order = ct.loc[c].sort_values(ascending=False)
         size = int(order.sum())
@@ -96,8 +97,8 @@ def mixing_report(ct, name):
 
 def sentiment():
     X, y, X_te, _ = load_all("sentiment")
-    X, X_te = preprocess(X, X_te, method=METHOD["sentiment"])      # fitted on all training rows
-    km, m = run_one("sentiment", 3, X, y, X_te, METHOD["sentiment"])
+    X, X_te = preprocess(X, X_te, method=METHOD["sentiment"])      #fitted on all training rows
+    km, m = run_one("sentiment", 3, X, y, X_te, METHOD["sentiment"])     #rows = clusters, columns = true labels
     ct = pd.crosstab(pd.Series(km.labels_, name="cluster"), pd.Series(y, name="label"))
     ct.to_csv(OUT_DIR / "sentiment_contingency_k3.csv")
     print("\nContingency table (rows = clusters, columns = true labels):")
@@ -117,6 +118,7 @@ def image():
     sweep.to_csv(OUT_DIR / "image_kmeans_sweep.csv", index=False)
     print("\n", sweep.round(4).to_string(index=False))
 
+    #inertia on the left axis, NMI on the right. inertia always drops as k grows, NMI is the useful one
     fig, ax1 = plt.subplots(figsize=(6, 4))
     ax1.plot(sweep["k"], sweep["inertia"], "o-", color="tab:blue")
     ax1.set_xlabel("k"); ax1.set_ylabel("inertia", color="tab:blue")
