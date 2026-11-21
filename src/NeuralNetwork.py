@@ -152,10 +152,10 @@ def run_dataset(name, configs):
 
 if __name__ == "__main__":
     sent_configs = [
-        dict(method="raw", hidden_sizes=[256,64], dropout=0.2, lr=1e-3, weight_decay=1e-3),
+        dict(method="raw", hidden_sizes=[512,128], dropout=0.2, lr=1e-3, weight_decay=1e-3, batch_size=256),
     ]
     img_configs = [
-        dict(method="raw", hidden_sizes=[256,64], dropout=0.2, lr=1e-3, weight_decay=1e-5),
+        dict(method="raw", hidden_sizes=[512,128], dropout=0.2, lr=1e-3, weight_decay=1e-5, batch_size=256),
     ]
 
     run_dataset("sentiment", sent_configs)
