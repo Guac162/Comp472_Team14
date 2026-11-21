@@ -28,3 +28,6 @@ date,file,image_preds,sentiment_preds,note,public_score
 2026-11-20T20:55,20261120_205543.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best lr, dp, dxw so far + batch 64 wd=0",
 2026-11-20T21:05,20261120_210501.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,best performing set,
 2026-11-20T20:55,20261120_205543.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best lr, dp, dxw so far + batch 64 wd=0",0.486
+2026-11-20T21:28,20261120_212843.csv,preds/test/knn_full_image.npy,preds/test/nn_full_sentiment.npy,"knn_full image + NN sentiment own-set standardised, 5 seeds, all rows",0.635
+2026-11-20T21:28,20261120_212845.csv,preds/test/knn_full_image.npy,preds/test/nn_full_bal_sentiment.npy,"knn_full image + NN sentiment own-set standardised, 5 seeds, all rows, balanced 1/3",0.636
+2026-11-20T21:49,20261120_214906.csv,preds/test/knn_soft_full_bal_image.npy,preds/test/nn_full_sentiment.npy,soft k-NN k=40 balanced image (val 59.8%) + NN sentiment own-set std 5 seeds (A),0.650
