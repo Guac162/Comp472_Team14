@@ -17,6 +17,7 @@ class NeuralNetwork(nn.Module):
     def __init__(self, input_size, hidden_sizes, output_size,
                  activation=nn.ReLU, dropout=0.0):
         super().__init__()
+        # one Linear + activation (+ dropout) block per entry in hidden_sizes
         layers, in_features = [], input_size
         for h in hidden_sizes:
             layers.append(nn.Linear(in_features, h))
@@ -24,6 +25,7 @@ class NeuralNetwork(nn.Module):
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
             in_features = h
+            # output layer, no softmax since CrossEntropyLoss does it
         layers.append(nn.Linear(in_features, output_size))
         self.linear_relu_stack = nn.Sequential(*layers)
 
@@ -39,6 +41,7 @@ def evaluate(model, loader, loss_fn, device):
         for X, y in loader:
             X, y = X.to(device), y.to(device)
             out = model(X)
+            # loss is a batch average- multiply back so the last small batch isn't overweighted
             total_loss += loss_fn(out, y).item() * len(y)
             correct += (out.argmax(1) == y).sum().item()
             total += len(y)
@@ -73,17 +76,19 @@ def train(model, train_loader, val_loader, lr=1e-3, weight_decay=0.0,
         history["val_acc"].append(val_acc)
         print(f"Epoch {epoch+1:3d} | train loss {train_loss:.4f} | "
               f"val loss {val_loss:.4f} | val acc {val_acc:.4f}")
-
+        
+        # early stopping is based on val accuracy, not val loss
         if val_acc > best_acc:
             best_acc, wait = val_acc, 0
-            best_state = copy.deepcopy(model.state_dict())
+            best_state = copy.deepcopy(model.state_dict()) #copy otherwise it keeps changing
             history["best_epoch"] = epoch + 1
         else:
             wait += 1
             if wait >= patience:
                 print(f"Early stopping at epoch {epoch+1}")
                 break
-
+    
+    #go back to best epoch not the last one
     model.load_state_dict(best_state)
     return model, history, best_acc
 
@@ -111,7 +116,7 @@ def run_dataset(name, configs):
         print(f"\n=== {name}: {config} ===")
         set_seed()   # same seed for every config->comparable runs
 
-        # scaler (if any) is fitted on train only, then applied to val and test
+        # scaler (if any) is fitted on train only then applied to val and test
         X_tr, X_va, X_te = preprocess(X_tr0, X_va0, X_te0, method=config["method"])
         tr_loader, va_loader = make_loaders(X_tr, y_tr, X_va, y_va, batch_size=config.get("batch_size", 128))
 
@@ -135,7 +140,7 @@ def run_dataset(name, configs):
                       best_epoch=history["best_epoch"])
 
         # predictions are saved only when this config is the best so far, so
-        # preds/*/nn_<dataset>.npy always ends up holding the best config.
+        # preds/*/nn_<dataset>.npy always ends up holding the best config
         is_best = val_acc > best_acc
         log_result(model="nn", dataset=name, who=WHO, params=params,
                    train_acc=train_acc, val_acc=val_acc,
@@ -151,6 +156,7 @@ def run_dataset(name, configs):
 
 
 if __name__ == "__main__":
+    #one dict = one run, edit lists for each sweep
     sent_configs = [
         dict(method="raw", hidden_sizes=[512,128], dropout=0.2, lr=1e-3, weight_decay=1e-3, batch_size=128),
     ]
