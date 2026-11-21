@@ -25,4 +25,4 @@ date,file,image_preds,sentiment_preds,note,public_score
 2026-11-20T18:57,20261120_185758.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp so far + depth 3 width 512,256,128",0.467
 2026-11-20T20:17,20261120_201726.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp, dxw so far + batch 64",0.483
 2026-11-20T20:02,20261120_200226.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best wd, lr, dp, dxw so far + batch 256",0.498
-2026-11-20T20:55,20261120_205543.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best lr, dp, dxw so far + batch 64 wd=0",
+2026-11-20T20:55,20261120_205543.csv,preds/test/nn_image.npy,preds/test/nn_sentiment.npy,"best lr, dp, dxw so far + batch 64 wd=0",0.486
